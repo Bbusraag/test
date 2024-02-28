@@ -1,4 +1,80 @@
 # Business
+controller:
+
+
+public partial class ChannelCloseOpenController : BTransactionalWizardController
+{
+    // ...
+
+    #region Execute
+
+    protected override BActionResult<BWizardModel> ExecuteAction()
+    {
+        var returnObject = new BActionResult<BWizardModel>();
+
+        var indexModel = GetModel<IndexModel>(IndexView.Name);
+
+        returnObject.Model = new DisplayResultModel();
+
+        // Get user information
+        WebUserContract webUser = WebContext.UserDataDictionary[BOA.Web.InternetBanking.Types.SessionKeys.WebUser] as WebUserContract;
+
+        // Call DeleteAndCloseUserChannel method
+        var requestDeleteCloseChannel = new ChannelCloseOpenRequest
+        {
+            UserId = webUser.CustomerPersonId,
+            MethodName = "DeleteAndCloseUserChannel"
+        };
+
+        var responseDeleteCloseChannel = Execute<ChannelCloseOpenRequest, WorkflowResponse<bool>>(requestDeleteCloseChannel, true);
+        if (!responseDeleteCloseChannel.Success)
+        {
+            returnObject.AddMessage(BOA.Messaging.MessagingHelper.GetMessage("InternetBanking", "AccountsParticipationAccountMergeGeneralErrorMessage", BOA.Web.Base.Utils.LocalizationHelper.LanguageId), MessageType.Error, responseDeleteCloseChannel.Results);
+            return returnObject;
+        }
+
+        // Call AddUserChannel method
+        var requestAddUserChannel = new ChannelCloseOpenRequest
+        {
+            UserId = webUser.CustomerPersonId,
+            MethodName = "AddUserChannel"
+        };
+
+        var responseAddUserChannel = Execute<ChannelCloseOpenRequest, WorkflowResponse<bool>>(requestAddUserChannel, true);
+        if (!responseAddUserChannel.Success)
+        {
+            returnObject.AddMessage(BOA.Messaging.MessagingHelper.GetMessage("InternetBanking", "AccountsParticipationAccountMergeGeneralErrorMessage", BOA.Web.Base.Utils.LocalizationHelper.LanguageId), MessageType.Error, responseAddUserChannel.Results);
+            return returnObject;
+        }
+
+        // Call SelectUserChannelHistoryList method
+        var requestSelectUserChannelHistoryList = new ChannelCloseOpenRequest
+        {
+            UserId = webUser.CustomerPersonId,
+            MethodName = "SelectUserChannelHistoryList"
+        };
+
+        var responseSelectUserChannelHistoryList = Execute<ChannelCloseOpenRequest, GenericResponse<List<UserChannelHistoryContract>>>(requestSelectUserChannelHistoryList, true);
+        if (!responseSelectUserChannelHistoryList.Success)
+        {
+            returnObject.AddMessage(BOA.Messaging.MessagingHelper.GetMessage("InternetBanking", "AccountsParticipationAccountMergeGeneralErrorMessage", BOA.Web.Base.Utils.LocalizationHelper.LanguageId), MessageType.Error, responseSelectUserChannelHistoryList.Results);
+            return returnObject;
+        }
+
+        // Process the responseSelectUserChannelHistoryList if needed
+
+        return returnObject;
+    }
+
+    #endregion
+
+    // ...
+}
+
+
+
+
+
 
    public ChannelCloseOpen(ExecutionDataContext context) : base(context)
         {
