@@ -2,6 +2,16 @@
 controller:
 
 
+
+if (webUser == null || string.IsNullOrEmpty(webUser.CustomerPersonId))
+{
+    // Kullanıcı bulunamadı hatası, uygun şekilde işleyin veya bir hata mesajı döndürün
+    returnObject.AddMessage("Kullanıcı bulunamadı.", MessageType.Error);
+    return returnObject;
+}
+
+
+
 public partial class ChannelCloseOpenController : BTransactionalWizardController
 {
     // ...
